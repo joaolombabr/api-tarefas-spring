@@ -1,0 +1,17 @@
+com\exemplo\tasks\TarefaController.class
+com\exemplo\tasks\Tarefa$TarefaBuilder.class
+com\exemplo\tasks\TarefaRepository.class
+com\exemplo\tasks\TarefaDTO$AtualizarStatusRequest.class
+com\exemplo\tasks\Tarefa$Prioridade.class
+com\exemplo\tasks\Tarefa$Status.class
+com\exemplo\tasks\TarefaService.class
+com\exemplo\tasks\GlobalExceptionHandler.class
+com\exemplo\tasks\GlobalExceptionHandler$ApiError.class
+com\exemplo\tasks\TarefaDTO.class
+com\exemplo\tasks\TarefaDTO$Estatisticas.class
+com\exemplo\tasks\Tarefa.class
+com\exemplo\tasks\TarefaDTO$AtualizarRequest.class
+com\exemplo\tasks\TarefaDTO$CriarRequest.class
+com\exemplo\tasks\TarefaDTO$Resposta.class
+com\exemplo\tasks\TarefaNaoEncontradaException.class
+com\exemplo\tasks\TasksApiApplication.class

@@ -1,22 +1,17 @@
-package com.tasks.controller;
+package com.exemplo.tasks;
 
-
-import com.tasks.model.Tarefa;
-import com.tasks.model.TarefaDTO;
-import com.tasks.service.TarefaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 
 @RestController
 @RequestMapping("/api/tarefas")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*") // Permite requisições do frontend
+@CrossOrigin(origins = "*")
 public class TarefaController {
 
     private final TarefaService service;
