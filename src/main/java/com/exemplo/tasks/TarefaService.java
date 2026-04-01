@@ -1,14 +1,9 @@
-package com.tasks.service;
+package com.exemplo.tasks;
 
-import com.tasks.exception.TarefaNaoEncontradaException;
-import com.tasks.model.Tarefa;
-import com.tasks.model.TarefaDTO;
-import com.tasks.repository.TarefaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 import java.util.stream.Collectors;
 

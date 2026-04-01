@@ -1,5 +1,6 @@
 package com.tasks.controller;
 
+
 import com.tasks.model.Tarefa;
 import com.tasks.model.TarefaDTO;
 import com.tasks.service.TarefaService;
@@ -10,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 
 @RestController
 @RequestMapping("/api/tarefas")
