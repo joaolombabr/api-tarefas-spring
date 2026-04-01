@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>API Tarefas — Cliente de Teste</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a26;
+    --border: #2a2a40;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --green: #4ade80;
+    --yellow: #fbbf24;
+    --red: #f87171;
+    --blue: #60a5fa;
+    --text: #e8e8f0;
+    --muted: #888898;
+    --code-bg: #0d0d15;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 280px 1fr 360px;
+    grid-template-rows: 60px 1fr;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* HEADER */
+  header {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+  }
+
+  .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .badge-h2 { background: #1a2a1a; color: var(--green); border: 1px solid #2a4a2a; }
+  .badge-rest { background: #1a1a2a; color: var(--accent); border: 1px solid #2a2a4a; }
+
+  .server-status {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--yellow);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* SIDEBAR — Endpoints */
+  aside {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px 0;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 0 16px 12px;
+  }
+
+  .endpoint-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  .endpoint-btn:hover { background: var(--surface2); }
+  .endpoint-btn.active {
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  .method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 3px;
+    min-width: 44px;
+    text-align: center;
+  }
+
+  .GET    { background: #0d2a1a; color: var(--green); }
+  .POST   { background: #1a1a2f; color: #a78bfa; }
+  .PUT    { background: #2a1a0d; color: var(--yellow); }
+  .PATCH  { background: #1a2a2a; color: var(--blue); }
+  .DELETE { background: #2a0d0d; color: var(--red); }
+
+  .endpoint-path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .endpoint-desc {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* MAIN — Request Builder */
+  main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .request-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .url-input {
+    flex: 1;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .url-input:focus { border-color: var(--accent); }
+
+  .send-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 9px 20px;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  .send-btn:hover { opacity: 0.9; }
+  .send-btn:active { transform: scale(0.97); }
+  .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    background: var(--surface);
+    gap: 4px;
+  }
+
+  .tab {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  .tab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .tab-panel.active { display: flex; }
+
+  .body-editor {
+    flex: 1;
+    background: var(--code-bg);
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border: none;
+    padding: 20px;
+    resize: none;
+    outline: none;
+    line-height: 1.6;
+    overflow-y: auto;
+  }
+
+  .params-table {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .param-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .param-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .param-input, .param-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    outline: none;
+    width: 100%;
+  }
+
+  .param-input:focus, .param-select:focus { border-color: var(--accent); }
+
+  /* RESPONSE PANEL */
+  .response-panel {
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .response-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .response-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .status-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+
+  .status-2xx { background: #0d2a1a; color: var(--green); }
+  .status-4xx { background: #2a1a0d; color: var(--yellow); }
+  .status-5xx { background: #2a0d0d; color: var(--red); }
+
+  .response-meta {
+    display: flex;
+    gap: 16px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--code-bg);
+  }
+
+  .meta-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .meta-item strong { color: var(--text); }
+
+  .response-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    background: var(--code-bg);
+    white-space: pre;
+    color: var(--text);
+  }
+
+  .json-key { color: #a78bfa; }
+  .json-string { color: var(--green); }
+  .json-number { color: var(--yellow); }
+  .json-bool { color: var(--blue); }
+  .json-null { color: var(--red); }
+
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 13px;
+    background: var(--code-bg);
+  }
+
+  .empty-icon { font-size: 32px; opacity: 0.4; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .section-sep {
+    padding: 10px 16px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+
+  .loading { display: inline-block; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Tasks <span>API</span></div>
+  <span class="badge badge-rest">REST</span>
+  <span class="badge badge-h2">H2 In-Memory</span>
+  <div class="server-status">
+    <div class="dot" id="statusDot"></div>
+    <span id="serverUrl">localhost:8080</span>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="sidebar-label">Endpoints</div>
+
+  <div class="section-sep">Consultas</div>
+
+  <button class="endpoint-btn active" onclick="selectEndpoint(this, 'GET', '/api/tarefas', 'list')">
+    <span class="method GET">GET</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas</div>
+      <div class="endpoint-desc">Listar todas</div>
+    </div>
+  </button>
+
+  <button class="endpoint-btn" onclick="selectEndpoint(this, 'GET', '/api/tarefas/{id}', 'getById')">
+    <span class="method GET">GET</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas/{id}</div>
+      <div class="endpoint-desc">Buscar por ID</div>
+    </div>
+  </button>
+
+  <button class="endpoint-btn" onclick="selectEndpoint(this, 'GET', '/api/tarefas/estatisticas', 'stats')">
+    <span class="method GET">GET</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas/estatisticas</div>
+      <div class="endpoint-desc">Estatísticas</div>
+    </div>
+  </button>
+
+  <div class="section-sep">Criação</div>
+
+  <button class="endpoint-btn" onclick="selectEndpoint(this, 'POST', '/api/tarefas', 'create')">
+    <span class="method POST">POST</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas</div>
+      <div class="endpoint-desc">Criar tarefa</div>
+    </div>
+  </button>
+
+  <div class="section-sep">Atualização</div>
+
+  <button class="endpoint-btn" onclick="selectEndpoint(this, 'PUT', '/api/tarefas/{id}', 'update')">
+    <span class="method PUT">PUT</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas/{id}</div>
+      <div class="endpoint-desc">Atualizar completo</div>
+    </div>
+  </button>
+
+  <button class="endpoint-btn" onclick="selectEndpoint(this, 'PATCH', '/api/tarefas/{id}/status', 'patch')">
+    <span class="method PATCH">PATCH</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas/{id}/status</div>
+      <div class="endpoint-desc">Atualizar status</div>
+    </div>
+  </button>
+
+  <div class="section-sep">Remoção</div>
+
+  <button class="endpoint-btn" onclick="selectEndpoint(this, 'DELETE', '/api/tarefas/{id}', 'delete')">
+    <span class="method DELETE">DEL</span>
+    <div>
+      <div class="endpoint-path">/api/tarefas/{id}</div>
+      <div class="endpoint-desc">Deletar tarefa</div>
+    </div>
+  </button>
+</aside>
+
+<!-- MAIN -->
+<main>
+  <div class="request-bar">
+    <span class="method" id="methodBadge" style="font-size:12px;padding:8px 12px;border-radius:6px;">GET</span>
+    <input class="url-input" id="urlInput" value="http://localhost:8080/api/tarefas" />
+    <button class="send-btn" id="sendBtn" onclick="sendRequest()">▶ Enviar</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab(this, 'params')">Parâmetros</button>
+    <button class="tab" onclick="switchTab(this, 'body')">Body (JSON)</button>
+  </div>
+
+  <!-- Params Tab -->
+  <div class="tab-panel active" id="tab-params">
+    <div class="params-table" id="paramsContent">
+      <div style="color: var(--muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; padding: 8px 0;">
+        Nenhum parâmetro para este endpoint.
+      </div>
+    </div>
+  </div>
+
+  <!-- Body Tab -->
+  <div class="tab-panel" id="tab-body">
+    <textarea class="body-editor" id="bodyEditor" placeholder="// Nenhum body necessário para este endpoint"></textarea>
+  </div>
+</main>
+
+<!-- RESPONSE -->
+<div class="response-panel">
+  <div class="response-header">
+    <span class="response-title">Resposta</span>
+    <span class="status-badge" id="statusBadge" style="display:none"></span>
+  </div>
+  <div class="response-meta" id="responseMeta" style="display:none">
+    <span class="meta-item">Status: <strong id="metaStatus">—</strong></span>
+    <span class="meta-item">Tempo: <strong id="metaTime">—</strong></span>
+  </div>
+  <div id="emptyState" class="empty-state">
+    <div class="empty-icon">⚡</div>
+    <span>Selecione um endpoint e envie a requisição</span>
+  </div>
+  <div class="response-body" id="responseBody" style="display:none"></div>
+</div>
+
+<script>
+const BASE_URL = 'http://localhost:8080';
+let currentType = 'list';
+let currentMethod = 'GET';
+
+const templates = {
+  list: {
+    method: 'GET',
+    url: '/api/tarefas',
+    params: `
+      <div class="param-row">
+        <span class="param-label">status</span>
+        <select class="param-select" id="p-status">
+          <option value="">— todos —</option>
+          <option>PENDENTE</option>
+          <option>EM_ANDAMENTO</option>
+          <option>CONCLUIDA</option>
+          <option>CANCELADA</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <span class="param-label">prioridade</span>
+        <select class="param-select" id="p-prioridade">
+          <option value="">— todas —</option>
+          <option>BAIXA</option>
+          <option>MEDIA</option>
+          <option>ALTA</option>
+          <option>URGENTE</option>
+        </select>
+      </div>
+      <div class="param-row">
+        <span class="param-label">titulo</span>
+        <input class="param-input" id="p-titulo" placeholder="filtrar por título..."/>
+      </div>`,
+    body: ''
+  },
+  getById: {
+    method: 'GET',
+    url: '/api/tarefas/',
+    params: `<div class="param-row">
+        <span class="param-label">id</span>
+        <input class="param-input" id="p-id" placeholder="ex: 1" type="number"/>
+      </div>`,
+    body: ''
+  },
+  stats: {
+    method: 'GET',
+    url: '/api/tarefas/estatisticas',
+    params: `<div style="color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;padding:8px 0;">Nenhum parâmetro necessário.</div>`,
+    body: ''
+  },
+  create: {
+    method: 'POST',
+    url: '/api/tarefas',
+    params: `<div style="color:var(--muted);font-size:12px;font-family:'JetBrains Mono',monospace;padding:8px 0;">Configure o body JSON ao lado.</div>`,
+    body: `{
+  "titulo": "Minha nova tarefa",
+  "descricao": "Descrição detalhada da tarefa",
+  "prioridade": "ALTA"
+}`
+  },
+  update: {
+    method: 'PUT',
+    url: '/api/tarefas/',
+    params: `<div class="param-row">
+        <span class="param-label">id</span>
+        <input class="param-input" id="p-id" placeholder="ex: 1" type="number"/>
+      </div>`,
+    body: `{
+  "titulo": "Tarefa atualizada",
+  "descricao": "Nova descrição",
+  "status": "EM_ANDAMENTO",
+  "prioridade": "ALTA"
+}`
+  },
+  patch: {
+    method: 'PATCH',
+    url: '/api/tarefas/',
+    params: `<div class="param-row">
+        <span class="param-label">id</span>
+        <input class="param-input" id="p-id" placeholder="ex: 1" type="number"/>
+      </div>`,
+    body: `{
+  "status": "CONCLUIDA"
+}`
+  },
+  delete: {
+    method: 'DELETE',
+    url: '/api/tarefas/',
+    params: `<div class="param-row">
+        <span class="param-label">id</span>
+        <input class="param-input" id="p-id" placeholder="ex: 1" type="number"/>
+      </div>`,
+    body: ''
+  }
+};
+
+function selectEndpoint(btn, method, path, type) {
+  document.querySelectorAll('.endpoint-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  currentType = type;
+  currentMethod = method;
+  const t = templates[type];
+
+  const badge = document.getElementById('methodBadge');
+  badge.textContent = method;
+  badge.className = `method ${method}`;
+  badge.style.fontSize = '12px';
+  badge.style.padding = '8px 12px';
+  badge.style.borderRadius = '6px';
+
+  document.getElementById('urlInput').value = BASE_URL + t.url;
+  document.getElementById('paramsContent').innerHTML = t.params;
+  document.getElementById('bodyEditor').value = t.body;
+
+  // Auto switch to body tab for methods with body
+  if (['POST', 'PUT', 'PATCH'].includes(method) && t.body) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab')[1].classList.add('active');
+    document.getElementById('tab-body').classList.add('active');
+  } else {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    document.getElementById('tab-params').classList.add('active');
+  }
+}
+
+function switchTab(btn, panel) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + panel).classList.add('active');
+}
+
+function buildUrl() {
+  let url = document.getElementById('urlInput').value;
+  const id = document.getElementById('p-id')?.value;
+  if (id) url = url.endsWith('/') ? url + id : url + '/' + id;
+
+  if (currentType === 'patch') {
+    if (!url.endsWith('/status')) url = url + '/status';
+  }
+
+  // query params for list
+  if (currentType === 'list') {
+    const params = new URLSearchParams();
+    const status = document.getElementById('p-status')?.value;
+    const prioridade = document.getElementById('p-prioridade')?.value;
+    const titulo = document.getElementById('p-titulo')?.value;
+    if (status) params.set('status', status);
+    if (prioridade) params.set('prioridade', prioridade);
+    if (titulo) params.set('titulo', titulo);
+    if (params.toString()) url += '?' + params.toString();
+  }
+
+  return url;
+}
+
+async function sendRequest() {
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="loading">↻</span> Enviando...';
+
+  const url = buildUrl();
+  const bodyRaw = document.getElementById('bodyEditor').value.trim();
+
+  const options = {
+    method: currentMethod,
+    headers: { 'Content-Type': 'application/json' }
+  };
+
+  if (['POST', 'PUT', 'PATCH'].includes(currentMethod) && bodyRaw) {
+    options.body = bodyRaw;
+  }
+
+  const start = Date.now();
+  try {
+    const res = await fetch(url, options);
+    const elapsed = Date.now() - start;
+    let data;
+    const text = await res.text();
+    try { data = JSON.parse(text); } catch { data = text; }
+
+    showResponse(res.status, elapsed, data);
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '▶ Enviar';
+  }
+}
+
+function showResponse(status, time, data) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('responseBody').style.display = 'block';
+  document.getElementById('responseMeta').style.display = 'flex';
+
+  const badge = document.getElementById('statusBadge');
+  badge.style.display = 'inline-block';
+  badge.textContent = status;
+
+  if (status >= 200 && status < 300) {
+    badge.className = 'status-badge status-2xx';
+  } else if (status >= 400 && status < 500) {
+    badge.className = 'status-badge status-4xx';
+  } else {
+    badge.className = 'status-badge status-5xx';
+  }
+
+  document.getElementById('metaStatus').textContent = status + ' ' + getStatusText(status);
+  document.getElementById('metaTime').textContent = time + 'ms';
+
+  const formatted = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+  document.getElementById('responseBody').innerHTML = syntaxHighlight(formatted || '(sem conteúdo)');
+}
+
+function showError(msg) {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('responseBody').style.display = 'block';
+  document.getElementById('responseMeta').style.display = 'flex';
+
+  const badge = document.getElementById('statusBadge');
+  badge.style.display = 'inline-block';
+  badge.textContent = 'ERRO';
+  badge.className = 'status-badge status-5xx';
+
+  document.getElementById('metaStatus').textContent = 'Erro de conexão';
+  document.getElementById('metaTime').textContent = '—';
+  document.getElementById('responseBody').innerHTML = `<span style="color:var(--red)">❌ Não foi possível conectar.\n\nVerifique se a API está rodando em:\n${BASE_URL}\n\nErro: ${msg}</span>`;
+}
+
+function syntaxHighlight(json) {
+  return json
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+      let cls = 'json-number';
+      if (/^"/.test(match)) {
+        cls = /:$/.test(match) ? 'json-key' : 'json-string';
+      } else if (/true|false/.test(match)) {
+        cls = 'json-bool';
+      } else if (/null/.test(match)) {
+        cls = 'json-null';
+      }
+      return `<span class="${cls}">${match}</span>`;
+    });
+}
+
+function getStatusText(code) {
+  const map = {200:'OK',201:'Created',204:'No Content',400:'Bad Request',404:'Not Found',422:'Unprocessable Entity',500:'Internal Server Error'};
+  return map[code] || '';
+}
+</script>
+</body>
+</html>
